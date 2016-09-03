@@ -29,7 +29,7 @@ def get_chunk_list():
     """
     """
     with open(MD5_LIST_FILE) as md5_file:
-        md5s = md5_file.readlines()
+        md5s = [md5.strip() for md5 in md5_file.readlines()]
 
     sizes = [os.path.getsize("chunks/" + md5)for md5 in md5s]
 
