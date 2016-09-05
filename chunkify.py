@@ -7,6 +7,8 @@ import os
 CHUNK_SIZE = 100000
 MD5_LIST_FILE = 'md5s.txt'
 
+DEFAULT_CHUNKS_DIR = 'chunks'
+
 def randint(end):
     """
     """
@@ -62,6 +64,19 @@ def diff(file1, file2):
 
     return diffs
 
+def chunk_diff(filename, chunksdir=DEFAULT_CHUNKS_DIR):
+    """
+    """
+    tmp_file = 'orig_from_chunks.tmp'
+
+    assemble_chunks_to_file(tmp_file)
+
+    diffs = diff(tmp_file, filename)
+
+    os.remove(tmp_file)
+
+    return diffs
+
 def write_chunk(content, md5s_file):
     """
     """
@@ -91,7 +106,7 @@ def get_chunk_sizes(md5s):
     """
     return [os.path.getsize("chunks/" + md5)for md5 in md5s]
 
-def assemble_chunks_to_file(filename, chunksdir='chunks'):
+def assemble_chunks_to_file(filename, chunksdir=DEFAULT_CHUNKS_DIR):
     """
     """
     with open(filename, 'w') as f:
@@ -123,7 +138,7 @@ def make_chunks(filename):
                     content = ''
                     size = 0
 
-def delete_chunks(chunksdir='chunks'):
+def delete_chunks(chunksdir=DEFAULT_CHUNKS_DIR):
     """
     """
     for md5 in get_chunk_md5s():
