@@ -12,6 +12,7 @@ def randint(end):
     """
     return random.randint(0, end-1)
 
+
 def make_test_file(filename, linesize=1000, numlines=1000, chunksize=CHUNK_SIZE):
     """
     """
@@ -95,7 +96,6 @@ def assemble_chunks_to_file(filename, chunksdir='chunks'):
     """
     with open(filename, 'w') as f:
         for md5 in get_chunk_md5s():
-            print(md5.strip())
             with open(os.path.join(chunksdir, md5.strip())) as chunk:
                 for line in chunk.readlines():
                     f.write(line)
@@ -123,4 +123,9 @@ def make_chunks(filename):
                     content = ''
                     size = 0
 
-
+def delete_chunks(chunksdir='chunks'):
+    """
+    """
+    for md5 in get_chunk_md5s():
+        os.remove(os.path.join(chunksdir, md5.strip()))
+    
