@@ -90,17 +90,49 @@ def chunk_diff(filename, chunksdir=DEFAULT_CHUNKS_DIR):
         right = (m.group(4) if m.group(4) else m.group(5), m.group(5))
         return change_type, left, right
 
+    new_md5s = []
+    left_offset = 0
+    right_offset = 0
     for diff in diffs:
         change_type, left, right = parse_diff(diff)
-        print change_type, left, right
+        # print change_type, left, right
 
+        right_start = right_offset
 
-def write_chunk(content, md5s_file):
+        while True:
+            md5 = md5s.pop(0)
+            size = sizes.pop(0)
+
+            left_offset += size
+            right_offset += size
+
+            if change_type == 'a':
+                if left_offset < left[0]:
+                    new_md5s.append(md5)
+                    continue
+
+                right_offset += right[1] - right[0]
+                break
+
+        content = get_file_slice(filename, right_start, right_offset)
+
+        md5 = write_chunk(content)
+
+        new_md5s.append(md5)
+
+    print(new_md5s)
+
+def write_chunk(content):
     """
     """
     md5 = hashlib.md5(content).hexdigest()
     with open("chunks/" + md5, 'w') as chunk_file:
         chunk_file.write(content)
+    return md5
+
+def write_md5(md5s_file, md5):
+    """
+    """
     md5s_file.write(md5 + '\n')
 
 def get_chunk_list():
@@ -147,12 +179,12 @@ def make_chunks(filename):
                 line = f.readline()
                 if not line:
                     if content:
-                        write_chunk(content, md5_file)
+                        write_md5(md5s_file, write_chunk(content))
                     break
                 size += len(line)
                 content += line
                 if size >= CHUNK_SIZE:
-                    write_chunk(content, md5_file)
+                    write_md5(md5s_file, write_chunk(content))
                     content = ''
                     size = 0
 
