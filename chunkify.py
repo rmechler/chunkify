@@ -3,11 +3,14 @@ import subprocess
 import random
 import hashlib
 import os
+import re
 
 CHUNK_SIZE = 100000
 MD5_LIST_FILE = 'md5s.txt'
 
 DEFAULT_CHUNKS_DIR = 'chunks'
+
+DIFF_REGEX = re.compile(r'^([0-9]+\,)?([0-9]+)([adc])([0-9]+\,)?([0-9]+)')
 
 def randint(end):
     """
@@ -55,7 +58,7 @@ def make_diff_file(old, new, adds=1, deletes=0, changes=0, per_change_limit=1):
     with open(new, 'w') as f:
         f.writelines(lines)
 
-def diff(file1, file2):
+def file_diff(file1, file2):
     """
     """
     # TODO: piping to cat so it won't return error code thus exception... need a better way
@@ -71,11 +74,26 @@ def chunk_diff(filename, chunksdir=DEFAULT_CHUNKS_DIR):
 
     assemble_chunks_to_file(tmp_file)
 
-    diffs = diff(tmp_file, filename)
+    diffs = file_diff(tmp_file, filename)
 
     os.remove(tmp_file)
 
-    return diffs
+    # return diffs
+
+    md5s = get_chunk_md5s()
+    sizes = get_chunk_sizes(md5s)
+
+    def parse_diff(diff):
+        m = DIFF_REGEX.match(diff)
+        change_type = m.group(3)
+        left = (m.group(1) if m.group(1) else m.group(2), m.group(2))
+        right = (m.group(4) if m.group(4) else m.group(5), m.group(5))
+        return change_type, left, right
+
+    for diff in diffs:
+        change_type, left, right = parse_diff(diff)
+        print change_type, left, right
+
 
 def write_chunk(content, md5s_file):
     """
